@@ -277,19 +277,17 @@ void scan_tokens(Scanner* scanner) {
   scanner->tokens->size++;
 }
 
-int scan_file(char* file_path) { // TODO: Change type of the function
+struct TokenArray* scan_file(char* file_path) {
   struct FileContent content = readFile(file_path);
 
   Scanner scanner;
   init_scanner(&scanner, content);
-  Token tokens[100];
-  int token_count = 0;
 
   scan_tokens(&scanner);
 
-  for ( int i = 0; i < token_count; i++ ) {
-    printf("%u %s %d\n", tokens[i].type, tokens[i].lexeme, tokens[i].line);
+  for ( int i = 0; i < scanner.tokens->size; i++ ) {
+    printf("%u %s %d\n", scanner.tokens->array[i]->type, scanner.tokens->array[i]->lexeme, scanner.tokens->array[i]->line);
   }
 
-  return 0;
+  return scanner.tokens;
 }
