@@ -1,0 +1,140 @@
+// PiKey Grammar and Syntax
+
+// This is a comment
+
+/*
+* This is also a comment
+*/
+
+type "Hello, world!"        // Type out the string 'Hello, world!'
+typeln "Hello, world!"      // This will do the same, but add a new line at the end
+
+press SUPER + R             // Emulate pressing the super key and r simultaniously
+
+press_down SUPER            // Presses and holds the key
+release SUPER               // Releases the held key
+
+let x = 30                  // Set the variable x to 30
+
+wait 300                    // Wait 300 ms
+
+led [true|false]                // Turns the onboard led on or off
+
+mode [key|mass|km|none]     // Changes the mode from keyboard, mass storage, both or none
+
+vendor_id 0xFFFF            // Changes the vendor id that is advertised to the host
+product_id 0xFFFF           // Changes the product id that is advertised to the host
+manufacturer PiKey          // Changes the manufacturer name that is advertised to the host
+product BadUSB              // Changes the product name that is advertised to the host
+serial_num 123456789124     // Changes the serial number that is advertised to the host
+
+// -------- //
+//   Math   //
+// -------- //
+
+x = 1 + 2                   // Sets the variable x to the result of 1 + 2
+y = x + 3                   // Sets the variable y to the result of x + 3
+
+x += 2                      // Adds 2 to the variable
+x -= 3                      // Substracts 3 from the variable
+
+4 * 5                       // Multiplies 4 and 5
+54 / 6                      // Divides 54 by 6
+50 % 3                      // Returns 50 modulo 3
+2 ** 4                      // Returns 2 to the power of 4
+
+// --------- //
+//   Types   //
+// --------- //
+
+"string"                    // String
+"str" + "ing"               // String concatenation
+
+1                           // Integer
+0.5                         // Float
+
+[true|false]                // Boolean
+
+[1,2,3]                     // List
+
+// ---------------- //
+//   Conditionals   //
+// ---------------- //
+
+
+if (x == 5) -> {             // If condition
+  type "Hello, world!"
+} elif (x == 3) -> {         // Else if condition
+  type "Ahoy, matey!"
+} -> {                       // Else condition
+  type "Greetings!"
+}
+
+if (x == 5) -> type "Hello"  // One line if condition
+
+==                           // Equal
+!=                           // Not equal
+>                            // Greater than
+<                            // Lesser than
+>=                           // Greater than or equal to
+<=                           // Lesser than or equal to
+and                          // Logical and
+or                           // Logical or
+xor                          // Logical exclusive or
+
+// --------------------- //
+//   Bitwise operators   //
+// --------------------- //
+
+&                            // Bitwise and operator
+|                            // Bitwise or operator
+^                            // Bitwise xor operator
+>>                           // Bit shift right
+<<                           // Bit shift left
+
+// --------- //
+//   Loops   //
+// --------- //
+
+for (i; 0; 5) -> {           // For loop from 0 to 5
+  type i
+}
+
+for (i; [1,2,5,7]) -> {      // For loop going through the list
+  type i
+}
+
+let i = 0
+while (i != 3) -> {          // While loop
+  type "Hello (" + i + ")"
+  i++
+}
+
+// ------------- //
+//   Functions   //
+// ------------- //
+
+def rickroll(a) => {         // Define the function rickroll 
+    press SUPER + R
+    type "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    press ENTER
+}
+
+def write(a) => type a       // One line function
+
+def returns(a) => return a   // Function with return
+                             // Functions can return any type of variable
+
+// ------------ //
+//   Builtins   //
+// ------------ //
+
+random_char()                // Returns a random lower case character from 'abcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()'
+random_let()                 // Returns a random lower case letter from 'abcdefghijklmnopqrstuvwxyz'
+random_digit()               // Returns a random digit from '0123456789'
+random_spcc()                // Returns a random special character from '!@#$%^&*()'
+random()                     // Returns a random float between 0 and 1
+
+lower()                      // Returns the lower case version of the string, will accept characters other than letters, but they will not be affected
+upper()                      // Returns the upper case version of the string, will accept characters other than letters, but they will not be affected
+
