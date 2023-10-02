@@ -1,17 +1,18 @@
+#include "colors.h"
 #include <stdio.h>
 
 void resetc() {
-  printf("\033[0m");
+  printf(RESET);
 }
 
 void redc() {
-  printf("\033[1;31m");
+  printf(RED);
 }
 
 void yellowc() {
-  printf("\033[1;33m");
+  printf(YELLOW);
 }
 
 void greenc() {
-  printf("\003[1;32m");
+  printf(GREEN);
 }
