@@ -1,26 +1,14 @@
 #include "../helpers/pk_errors.h"
 #include "../helpers/file_utils.h"
 #include "../helpers/substring.h"
+#include "../helpers/print_tokens.h"
 #include "./token.h"
 #include "./token_type.h"
+#include "./scanner.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
-struct TokenArray {
-  Token** array;
-  size_t size;
-};
-
-typedef struct {
-  struct FileContent content;
-  char* source;
-  int current;
-  int start;
-  int line;
-  struct TokenArray* tokens;
-} Scanner;
 
 char* get_line_from_mem(struct FileContent content, int line) {
   int start_pos = 0;
@@ -80,7 +68,7 @@ void free_token_array(struct TokenArray* token_array) {
 }
 
 void init_scanner(Scanner* scanner, struct FileContent content) {
-  scanner->content = content;
+  scanner->content = &content;
   scanner->source = content.bytes;
   scanner->current = 0;
   scanner->start = 0;
@@ -131,7 +119,7 @@ void string(Scanner* scanner) {
   }
 
   if ( is_at_end(scanner) ) {
-    line_error(scanner->line, "Unterminated string", scanner->content);
+    line_error(scanner->line, "Unterminated string", *scanner->content);
   }
 
   advance(scanner);
@@ -264,7 +252,7 @@ void scan_token(Scanner* scanner) {
       } else if ( is_alpha(c) ) {
         identifier(scanner);
       } else {
-        line_error(scanner->line, strcat("Unexpected character", (char*)&c), scanner->content);
+        line_error(scanner->line, strcat("Unexpected character", (char*)&c), *scanner->content);
       }
       break;
   }
@@ -289,9 +277,7 @@ struct TokenArray* scan_file(char* file_path) {
 
   scan_tokens(&scanner);
 
-  for ( int i = 0; i < scanner.tokens->size; i++ ) {
-    printf("%u %s %d\n", scanner.tokens->array[i]->type, scanner.tokens->array[i]->lexeme, scanner.tokens->array[i]->line);
-  }
+  print_tokens(scanner.tokens);
 
   return scanner.tokens;
 }
