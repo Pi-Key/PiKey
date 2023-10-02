@@ -217,12 +217,16 @@ void scan_token(Scanner* scanner) {
     case '}': add_token(scanner, RIGHT_BRACE); break;
     case ',': add_token(scanner, COMMA); break;
     case '.': add_token(scanner, DOT); break;
-    case '-': add_token(scanner, MINUS); break;
-    case '+': add_token(scanner, PLUS); break;
-    case '*': add_token(scanner, STAR); break;
+    case '-': add_token(scanner, match(scanner, '=') ? MINUS_EQUAL : match(scanner, '>') ? ARROW : MINUS); break;
+    case '+': add_token(scanner, match(scanner, '=') ? PLUS_EQUAL : PLUS); break;
+    case '*': add_token(scanner, match(scanner, '*') ? DOUBLE_STAR : STAR); break;
+    case '&': add_token(scanner, AMPERSAND); break;
+    case '|': add_token(scanner, PIPE); break;
+    case '^': add_token(scanner, CARET); break;
+    case '%': add_token(scanner, PERCENT); break;
 
     case '!': add_token(scanner, match(scanner, '=') ? BANG_EQUAL : BANG); break;
-    case '=': add_token(scanner, match(scanner, '=') ? EQUAL_EQUAL : EQUAL); break;
+    case '=': add_token(scanner, match(scanner, '=') ? EQUAL_EQUAL : match(scanner, '>') ? THICK_ARROW : EQUAL); break;
     case '<': add_token(scanner, match(scanner, '=') ? LESS_EQUAL : LESS_THAN); break;
     case '>': add_token(scanner, match(scanner, '=') ? GREATER_EQUAL : GREATER_THAN); break;
 

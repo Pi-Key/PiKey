@@ -1,5 +1,5 @@
-#ifndef GRAMMAR
-#define GRAMMAR
+#ifndef TOKEN_TYPE
+#define TOKEN_TYPE
 
 enum TokenType {
   LEFT_PARENTHESE,
@@ -29,10 +29,7 @@ enum TokenType {
   BIT_SHIFT_LEFT,
   BIT_SHIFT_RIGHT,
 
-  DOUBLE_SLASH,
   DOUBLE_STAR,
-  DOUBLE_PLUS,
-  DOUBLE_MINUS,
   PLUS_EQUAL,
   MINUS_EQUAL,
   
