@@ -33,9 +33,6 @@ enum TokenType {
   PLUS_EQUAL,
   MINUS_EQUAL,
   
-  ARROW,
-  THICK_ARROW,
-
   IDENTIFIER,
   STRING,
   NUMBER,

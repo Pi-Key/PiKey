@@ -55,22 +55,20 @@ x -= 3                      // Substracts 3 from the variable
 
 [true|false]                // Boolean
 
-[1,2,3]                     // List
-
 // ---------------- //
 //   Conditionals   //
 // ---------------- //
 
 
-if (x == 5) -> {             // If condition
+if (x == 5) {                // If condition
   type "Hello, world!"
-} elif (x == 3) -> {         // Else if condition
+} elif (x == 3) {            // Else if condition
   type "Ahoy, matey!"
-} -> {                       // Else condition
+} {                          // Else condition
   type "Greetings!"
 }
 
-if (x == 5) -> type "Hello"  // One line if condition
+if (x == 5) type "Hello"     // One line if condition
 
 ==                           // Equal
 !=                           // Not equal
@@ -96,16 +94,16 @@ xor                          // Logical exclusive or
 //   Loops   //
 // --------- //
 
-for (i; 0; 5) -> {           // For loop from 0 to 5
+for (i; 0; 5) {              // For loop from 0 to 5
   type i
 }
 
-for (i; [1,2,5,7]) -> {      // For loop going through the list
+for (i; [1,2,5,7]) {         // For loop going through the list
   type i
 }
 
 let i = 0
-while (i != 3) -> {          // While loop
+while (i != 3) {             // While loop
   type "Hello (" + i + ")"
   i++
 }
@@ -114,15 +112,15 @@ while (i != 3) -> {          // While loop
 //   Functions   //
 // ------------- //
 
-def rickroll(a) => {         // Define the function rickroll 
+def rickroll(a) {            // Define the function rickroll 
     press SUPER + R
     type "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     press ENTER
 }
 
-def write(a) => type a       // One line function
+def write(a) type a          // One line function
 
-def returns(a) => return a   // Function with return
+def returns(a) return a      // Function with return
                              // Functions can return any type of variable
 
 // ------------ //
