@@ -85,7 +85,7 @@ void add_token_lit(Scanner* scanner, enum TokenType type, void* literal) {
 
   scanner->tokens->array = realloc(scanner->tokens->array, (scanner->tokens->size + 1) * sizeof(struct Token*));
 
-  (scanner->tokens->array)[scanner->tokens->size] = create_token((TokenType)type, text, literal, scanner->line);
+  (scanner->tokens->array)[scanner->tokens->size] = create_token((enum TokenType)type, text, literal, scanner->line);
   scanner->tokens->size++;
 }
 

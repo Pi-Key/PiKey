@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 
-Token* create_token(TokenType type, const char* lexeme, void* literal, int line) {
+Token* create_token(enum TokenType type, const char* lexeme, void* literal, int line) {
   Token* token = (Token*)malloc(sizeof(Token));
   token->type = type;
   token->lexeme = strdup(lexeme);
@@ -23,9 +23,9 @@ char* token_to_string(Token* token) {
 
   sprintf(result, "%d %s ", token->type, token->lexeme);
   
-  if ( token->type == STRING_TYPE ){
+  if ( token->type == STRING ){
     sprintf(result, "\"%s\"", (char*)token->literal);
-  } else if ( token->type == NUMBER_TYPE ) {
+  } else if ( token->type == NUMBER ) {
     sprintf(result, "%s", (char*)token->literal);
   }
 

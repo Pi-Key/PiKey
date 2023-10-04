@@ -1,20 +1,22 @@
 #ifndef TOKEN
 #define TOKEN
 
-typedef enum {
-  TOKEN_TYPE,
-  STRING_TYPE,
-  NUMBER_TYPE,
-} TokenType;
+#include "token_type.h"
+
+// typedef enum {
+//   TOKEN_TYPE,
+//   STRING_TYPE,
+//   NUMBER_TYPE,
+// } TokenType;
 
 typedef struct {
-  TokenType type;
+  enum TokenType type;
   char* lexeme;
   void* literal;
   int line;
 } Token;
 
-Token* create_token(TokenType type, const char* lexeme, void* literal, int line);
+Token* create_token(enum TokenType type, const char* lexeme, void* literal, int line);
 
 void free_token(Token* token);
 
