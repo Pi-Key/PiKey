@@ -20,7 +20,7 @@ wait 300                    // Wait 300 ms
 
 led [true|false]                // Turns the onboard led on or off
 
-mode [key|mass|km|none]     // Changes the mode from keyboard, mass storage, both or none
+mode [key|mass|both|none]     // Changes the mode from keyboard, mass storage, both or none
 
 vendor_id 0xFFFF            // Changes the vendor id that is advertised to the host
 product_id 0xFFFF           // Changes the product id that is advertised to the host
