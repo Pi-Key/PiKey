@@ -96,7 +96,13 @@ struct NumAndCode let(struct TokenArray* token_array, int current) {
 
   int i = current + 3;
   while (token_array->array[i]->line == token_array->array[current]->line) {
-    strcat(result.resulting_code, token_array->array[i]->lexeme);
+    if ( token_array->array[i]->type == TRUE ) {
+      strcat(result.resulting_code, " True");
+    } else if ( token_array->array[i]->type == FALSE ) {
+      strcat(result.resulting_code, " False");
+    } else {
+      strcat(result.resulting_code, formatter(" %s", token_array->array[i]->lexeme));
+    }
     i++;
   }
 
