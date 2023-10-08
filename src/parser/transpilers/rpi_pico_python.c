@@ -33,7 +33,7 @@ char* type(Token* token) {
   return resulting_code;
 }
 
-struct NumAndCode press(struct TokenArray* token_array, int current, bool keep) {
+struct NumAndCode press(Token** token_array, int current, bool keep) {
   struct NumAndCode result;
 
   if ( !has_press ) {
@@ -49,8 +49,8 @@ struct NumAndCode press(struct TokenArray* token_array, int current, bool keep) 
 
   
   int i = current;
-  while (token_array->array[i]->line == token_array->array[current]->line) {
-    strcat(result.resulting_code, formatter("\"%s\"", token_array->array[i]->lexeme));
+  while (token_array[i]->line == token_array[current]->line) {
+    strcat(result.resulting_code, formatter("\"%s\"", token_array[i]->lexeme));
     i++;
   }
 
@@ -61,7 +61,7 @@ struct NumAndCode press(struct TokenArray* token_array, int current, bool keep) 
   return result;
 }
 
-struct NumAndCode release(struct TokenArray* token_array, int current) {
+struct NumAndCode release(Token** token_array, int current) {
   struct NumAndCode result;
 
   if ( !has_release ) {
@@ -72,8 +72,8 @@ struct NumAndCode release(struct TokenArray* token_array, int current) {
   strcat(result.resulting_code, "kbd.release(");
 
   int i = current + 1;
-  while (token_array->array[i]->line == token_array->array[current]->line) {
-    strcat(result.resulting_code, formatter("Keycode.%s", token_array->array[i]->lexeme));
+  while (token_array[i]->line == token_array[current]->line) {
+    strcat(result.resulting_code, formatter("Keycode.%s", token_array[i]->lexeme));
     i++;
   }
 
@@ -84,24 +84,24 @@ struct NumAndCode release(struct TokenArray* token_array, int current) {
   return result;
 }
 
-struct NumAndCode let(struct TokenArray* token_array, int current) {
+struct NumAndCode let(Token** token_array, int current) {
   struct NumAndCode result;
 
-  if ( token_array->array[current + 1]->type != IDENTIFIER || token_array->array[current + 2]->type != EQUAL  ) {
-    pk_error(formatter("[%d] There was an error with the variable assignment.", token_array->array[current]->line));
+  if ( token_array[current + 1]->type != IDENTIFIER || token_array[current + 2]->type != EQUAL  ) {
+    pk_error(formatter("[%d] There was an error with the variable assignment.", token_array[current]->line));
     exit(1);
   }
 
-  result.resulting_code = formatter("%s = ", token_array->array[current + 1]->lexeme);
+  result.resulting_code = formatter("%s = ", token_array[current + 1]->lexeme);
 
   int i = current + 3;
-  while (token_array->array[i]->line == token_array->array[current]->line) {
-    if ( token_array->array[i]->type == TRUE ) {
+  while (token_array[i]->line == token_array[current]->line) {
+    if ( token_array[i]->type == TRUE ) {
       strcat(result.resulting_code, " True");
-    } else if ( token_array->array[i]->type == FALSE ) {
+    } else if ( token_array[i]->type == FALSE ) {
       strcat(result.resulting_code, " False");
     } else {
-      strcat(result.resulting_code, formatter(" %s", token_array->array[i]->lexeme));
+      strcat(result.resulting_code, formatter(" %s", token_array[i]->lexeme));
     }
     i++;
   }
@@ -209,50 +209,20 @@ struct NumAndCode identifier(Token** token_array, int current) {
   return result;
 }
 
-struct NumAndCode transpile_if(Token** token_array, int current) {
-  struct NumAndCode result;
-
-  if ( token_array[current + 1] != LEFT_PARENTHESE ) {
-    pk_error(formatter("[%d] if statment expects parentheses around the condition.", token_array[current + 1]->line));
-    exit(1);
-  }
-
-  result.resulting_code = "if ";
-
-  int i = current + 2;
-  while ( token_array[i]->type != RIGHT_PARENTHESE && token_array[i+1]->type != LEFT_BRACE ) {
-    if ( token_array[i]->type == TRUE ) {
-      strcat(result.resulting_code, " True");
-    } else if ( token_array[i]->type == FALSE ) {
-      strcat(result.resulting_code, " False");
-    } else {
-      strcat(result.resulting_code, formatter(" %s", token_array[i]->lexeme));
-    }
-
-    i++;
-  }
-
-  strcat(result.resulting_code, "\n");
-
-  result.i = i - 1;
-
-  return result;
-}
-
-struct NumAndCode transpile_token(struct TokenArray* token_array, int i) {
-    Token* current_token = token_array->array[i];
+struct NumAndCode transpile_token(Token** token_array, int i) {
+    Token* current_token = token_array[i];
     
     char* resulting_code;
 
     switch (current_token->type) {
       case TYPE:
         i++;
-        resulting_code = type(token_array->array[i]->literal);
+        resulting_code = type(token_array[i]->literal);
         break;
       case TYPELN:
         i++;
-        strcat(token_array->array[i]->literal, "\n");
-        resulting_code = type(token_array->array[i]->literal);
+        strcat(token_array[i]->literal, "\n");
+        resulting_code = type(token_array[i]->literal);
         break;
       case PRESS:
         {
@@ -288,32 +258,24 @@ struct NumAndCode transpile_token(struct TokenArray* token_array, int i) {
         }
       case WAIT:
         i++;
-        resulting_code = wait(token_array->array[i]);
+        resulting_code = wait(token_array[i]);
         break;
       case LED:
         i++;
-        resulting_code = led(token_array->array[i]);
+        resulting_code = led(token_array[i]);
         break;
       case MODE:
         i++;
-        resulting_code = mode(token_array->array[i]);
+        resulting_code = mode(token_array[i]);
         break;
       case IDENTIFIER:
         {
           struct NumAndCode new_i_and_code;
-          new_i_and_code = identifier(token_array->array, i);
+          new_i_and_code = identifier(token_array, i);
           resulting_code = new_i_and_code.resulting_code;
           i = new_i_and_code.i;
           break;
         }
-      case IF:
-        {
-        struct NumAndCode new_i_and_code;
-        new_i_and_code = transpile_if(token_array->array, i);
-        resulting_code = new_i_and_code.resulting_code;
-        i = new_i_and_code.i;
-        break;
-      }
 
       default:
         break;
@@ -324,6 +286,53 @@ struct NumAndCode transpile_token(struct TokenArray* token_array, int i) {
   return final_i_and_code;
 }
 
+struct NumAndCode transpile_if(Token** token_array, int current) {
+  struct NumAndCode result;
+
+  if ( token_array[current + 1] != LEFT_PARENTHESE ) {
+    pk_error(formatter("[%d] if statment expects parentheses around the condition.", token_array[current + 1]->line));
+    exit(1);
+  }
+
+  result.resulting_code = "if ";
+
+  int i = current + 2;
+  while ( token_array[i]->type != RIGHT_PARENTHESE && token_array[i+1]->type != LEFT_BRACE ) {
+    if ( token_array[i]->type == TRUE ) {
+      strcat(result.resulting_code, " True");
+    } else if ( token_array[i]->type == FALSE ) {
+      strcat(result.resulting_code, " False");
+    } else {
+      strcat(result.resulting_code, formatter(" %s", token_array[i]->lexeme));
+    }
+
+    i++;
+  }
+
+  strcat(result.resulting_code, ":\n");
+  i++;
+
+  int prev_line = token_array[i]->line;
+
+  while ( token_array[i]->type != RIGHT_BRACE ) {
+    if ( token_array[i]->line != prev_line ) {
+      strcat(result.resulting_code, "\n");
+    }
+
+    struct NumAndCode new_i_and_code = transpile_token(token_array, i);
+    i = new_i_and_code.i;
+    strcat(result.resulting_code, new_i_and_code.resulting_code);
+
+    prev_line = token_array[i]->line;
+  }
+
+  strcat(result.resulting_code, "\n");
+
+  result.i = i - 1;
+
+  return result;
+}
+
 char* rpi_pico_python_transpiler(struct TokenArray* token_array) {
   Token* current_token;
 
@@ -331,7 +340,13 @@ char* rpi_pico_python_transpiler(struct TokenArray* token_array) {
 
   for ( int i = 0; i < token_array->size; i++ ) {
 
-    struct NumAndCode new_i_and_code = transpile_token(token_array, i);
+    struct NumAndCode new_i_and_code;
+
+    if ( token_array->array[i]->type == IF ) {
+      new_i_and_code = transpile_if(token_array->array, i);
+    } else {
+      new_i_and_code = transpile_token(token_array->array, i);
+    }
 
     i = new_i_and_code.i;
     char* resulting_code = new_i_and_code.resulting_code;
