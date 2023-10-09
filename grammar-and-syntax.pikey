@@ -131,7 +131,7 @@ random_char()                // Returns a random lower case character from 'abcd
 random_let()                 // Returns a random lower case letter from 'abcdefghijklmnopqrstuvwxyz'
 random_digit()               // Returns a random digit from '0123456789'
 random_spcc()                // Returns a random special character from '!@#$%^&*()'
-random()                     // Returns a random float between 0 and 1
+rand()                     // Returns a random float between 0 and 1
 
 lower()                      // Returns the lower case version of the string, will accept characters other than letters, but they will not be affected
 upper()                      // Returns the upper case version of the string, will accept characters other than letters, but they will not be affected

@@ -1,5 +1,6 @@
 import board
 from board import *
+import random
 import usb_hid
 from adafruit_hid.keyboard import Keyboard
 from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS as KeyboardLayout
@@ -33,4 +34,32 @@ def define_ducky_commands():
         'F12': Keycode.F12,
     }
 duckyCommands = define_ducky_commands()
+
+def random_char():
+    r = random.choices('abcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()')[0]
+    
+    try:
+        r = int(r)
+    except:
+        pass
+    finally:
+        return r
+
+def random_let():
+    return random.choices('abcdefghijklmnopqrstuvwxyz')[0]
+
+def random_digit():
+    return int(random.choices('0123456789')[0])
+
+def random_spcc():
+    return random.choices('!@#$%^&*()')[0]
+
+def random():
+    return random.random()
+
+def lower(string):
+    return string.lower()
+
+def upper(string):
+    return string.upper()
 
