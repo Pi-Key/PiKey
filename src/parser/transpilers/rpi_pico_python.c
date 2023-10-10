@@ -289,12 +289,13 @@ struct NumAndCode transpile_token(Token** token_array, int i) {
 struct NumAndCode transpile_if(Token** token_array, int current) {
   struct NumAndCode result;
 
-  if ( token_array[current + 1] != LEFT_PARENTHESE ) {
+  if ( token_array[current + 1]->type != LEFT_PARENTHESE ) {
     pk_error(formatter("[%d] if statment expects parentheses around the condition.", token_array[current + 1]->line));
     exit(1);
   }
 
-  result.resulting_code = "if ";
+  result.resulting_code = token_array[current]->lexeme;
+  strcat(result.resulting_code, " ");
 
   int i = current + 2;
   while ( token_array[i]->type != RIGHT_PARENTHESE && token_array[i+1]->type != LEFT_BRACE ) {
@@ -333,6 +334,32 @@ struct NumAndCode transpile_if(Token** token_array, int current) {
   return result;
 }
 
+struct NumAndCode transpile_for(Token** token_array, int current) {
+  struct NumAndCode result;
+
+  if ( token_array[current + 1]->type != LEFT_PARENTHESE ) {
+    pk_error(formatter("[%d] for loop expects parentheses around the condition.", token_array[current + 1]->line));
+    exit(1);
+  }
+
+  result.resulting_code = "for ";
+
+  int i = current + 2;
+
+  if ( token_array[i]->type != IDENTIFIER ) {
+    pk_error(formatter("[%d] for loop expects the first argument to be the iterator variable.", token_array[i]->line));
+    exit(1);
+  }
+
+  strcat(result.resulting_code, token_array[i]->lexeme);
+  i++;
+
+  // if ( token_array[i]->type != SEMICOLON ) { // Dealing with the rest of the arguments and assuring separation with semicolons
+  // }
+
+  return result;
+}
+
 char* rpi_pico_python_transpiler(struct TokenArray* token_array) {
   Token* current_token;
 
@@ -342,8 +369,10 @@ char* rpi_pico_python_transpiler(struct TokenArray* token_array) {
 
     struct NumAndCode new_i_and_code;
 
-    if ( token_array->array[i]->type == IF ) {
+    if ( token_array->array[i]->type == IF || token_array->array[i]->type == ELIF ) {
       new_i_and_code = transpile_if(token_array->array, i);
+    } else if ( token_array->array[i]->type == FOR ) {
+      new_i_and_code = transpile_for(token_array->array, i);
     } else {
       new_i_and_code = transpile_token(token_array->array, i);
     }

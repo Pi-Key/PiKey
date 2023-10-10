@@ -204,6 +204,7 @@ void scan_token(Scanner* scanner) {
     case '{': add_token(scanner, LEFT_BRACE); break;
     case '}': add_token(scanner, RIGHT_BRACE); break;
     case ',': add_token(scanner, COMMA); break;
+    case ';': add_token(scanner, SEMICOLON); break;
     case '.': add_token(scanner, DOT); break;
     case '-': add_token(scanner, match(scanner, '=') ? MINUS_EQUAL : MINUS); break;
     case '+': add_token(scanner, match(scanner, '=') ? PLUS_EQUAL : PLUS); break;
