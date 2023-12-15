@@ -195,14 +195,18 @@ Token scan_token() {
 		case ';': return make_token(TOKEN_SEMICOLON);
 		case ',': return make_token(TOKEN_COMMA);
 		case '.': return make_token(TOKEN_DOT);
-		case '-': return make_token(TOKEN_MINUS);
-		case '+': return make_token(TOKEN_PLUS);
+		case '-': return make_token(match('=') ? TOKEN_MINUS_EQUAL : TOKEN_MINUS);
+		case '+': return make_token(match('=') ? TOKEN_PLUS_EQUAL : TOKEN_PLUS);
 		case '/': return make_token(TOKEN_SLASH);
-		case '*': return make_token(TOKEN_STAR);
+		case '*': return make_token(match('*') ? TOKEN_STAR_STAR : TOKEN_STAR);
 		case '!': return make_token(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
 		case '=': return make_token(match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
-		case '<': return make_token(match('=') ? TOKEN_LESSER_EQUAL : TOKEN_LESSER);
-		case '>': return make_token(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+		case '<': return make_token(match('=') ? TOKEN_LESSER_EQUAL : match('<') ? TOKEN_LESSER_LESSER : TOKEN_LESSER);
+		case '>': return make_token(match('=') ? TOKEN_GREATER_EQUAL : match('>') ? TOKEN_GREATER_GREATER : TOKEN_GREATER);
+		case '^': return make_token(TOKEN_CARET);
+		case '|': return make_token(TOKEN_PIPE);
+		case '&': return make_token(TOKEN_AMPERSAND);
+		case '%': return make_token(TOKEN_PERCENT);
 		case '"': return string('"');
 		case '\'': return string('\'');
 	}

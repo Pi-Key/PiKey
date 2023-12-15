@@ -8,6 +8,7 @@
 #include "compiler.h"
 #include "object.h"
 #include "memory.h"
+#include "value.h"
 #include "vm.h"
 
 VM vm;
@@ -257,10 +258,86 @@ static InterpretResult run() {
 				frame->slots[slot] = peek(0);
 				break;
 			}
+			case OP_SUB_SET_LOCAL: {
+				uint8_t slot = READ_BYTE();
+				Value initial = frame->slots[slot];
+				Value sub = peek(0);
+
+				if ( !IS_NUMBER(initial) || !IS_NUMBER(sub) ) {
+					runtime_error("Trying to subtract with '-=' to a variable which is not a number.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				frame->slots[slot] = num_to_value(value_to_num(initial) - value_to_num(sub));
+				break;
+			}
+			case OP_ADD_SET_LOCAL: {
+				uint8_t slot = READ_BYTE();
+				Value initial = frame->slots[slot];
+				Value add = peek(0);
+
+				if ( !IS_NUMBER(initial) || !IS_NUMBER(add) ) {
+					runtime_error("Trying to add with '+=' to a variable which is not a number.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				frame->slots[slot] = num_to_value(value_to_num(initial) + value_to_num(add));
+				break;
+			}
 			case OP_SET_GLOBAL: {
 				ObjString* name = READ_STRING();
 
 				if ( table_set(&vm.globals, name, peek(0)) ) {
+					table_delete(&vm.globals, name);
+					runtime_error("Undefined variable '%s'.", name->chars);
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				break;
+			}
+			case OP_SUB_SET_GLOBAL: {
+				ObjString* name = READ_STRING();
+				Value initial;
+				Value sub = peek(0);
+
+				if ( !table_get(&vm.globals, name, &initial) ) {
+					runtime_error("Undefined variable '%s'.", name->chars);
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				if ( !IS_NUMBER(initial) || !IS_NUMBER(sub) ) {
+					runtime_error("Trying to subtract with '-=' to a variable which is not a number.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				Value new_val = num_to_value(value_to_num(initial) - value_to_num(sub));
+
+				if ( table_set(&vm.globals, name, new_val) ) {
+					table_delete(&vm.globals, name);
+					runtime_error("Undefined variable '%s'.", name->chars);
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				break;
+			}
+			case OP_ADD_SET_GLOBAL: {
+				ObjString* name = READ_STRING();
+				Value initial;
+				Value add = peek(0);
+
+				if ( !table_get(&vm.globals, name, &initial) ) {
+					runtime_error("Undefined variable '%s'.", name->chars);
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				Value new_val = num_to_value(value_to_num(initial) + value_to_num(add));
+
+				if ( !IS_NUMBER(initial) || !IS_NUMBER(add) ) {
+					runtime_error("Trying to add with '+=' to a variable which is not a number.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				if ( table_set(&vm.globals, name, new_val) ) {
 					table_delete(&vm.globals, name);
 					runtime_error("Undefined variable '%s'.", name->chars);
 					return INTERPRET_RUNTIME_ERROR;
@@ -276,6 +353,32 @@ static InterpretResult run() {
 			case OP_SET_UPVALUE: {
 				uint8_t slot = READ_BYTE();
 				*frame->closure->upvalues[slot]->location = peek(0);
+				break;
+			}
+			case OP_SUB_SET_UPVALUE: {
+				uint8_t slot = READ_BYTE();
+				Value initial = *frame->closure->upvalues[slot]->location;
+				Value sub = peek(0);
+
+				if ( !IS_NUMBER(initial) || !IS_NUMBER(sub) ) {
+					runtime_error("Trying to subtract with '-=' to a variable which is not a number.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				*frame->closure->upvalues[slot]->location = num_to_value(value_to_num(initial) - value_to_num(sub));
+				break;
+			}
+			case OP_ADD_SET_UPVALUE: {
+				uint8_t slot = READ_BYTE();
+				Value initial = *frame->closure->upvalues[slot]->location;
+				Value add = peek(0);
+
+				if ( !IS_NUMBER(initial) || !IS_NUMBER(add) ) {
+					runtime_error("Trying to add with '+=' to a variable which is not a number.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				*frame->closure->upvalues[slot]->location = num_to_value(value_to_num(initial) + value_to_num(add));
 				break;
 			}
 			case OP_EQUAL: {

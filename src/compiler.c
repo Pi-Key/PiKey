@@ -419,27 +419,44 @@ static void string(bool can_assign) {
 }
 
 static void named_variable(Token name, bool can_assign) {
-	uint8_t getOp, setOp;
+	uint8_t getOp, setOp, addOp, subOp;
 	int arg = resolve_local(current, &name);
 
 	if ( arg != -1 ) {
 		getOp = OP_GET_LOCAL;
 		setOp = OP_SET_LOCAL;
+		addOp = OP_ADD_SET_LOCAL;
+		subOp = OP_SUB_SET_LOCAL;
 	} else if ( (arg = resolve_upvalue(current, &name)) != -1 ) {
 		getOp = OP_GET_UPVALUE;
 		setOp = OP_SET_UPVALUE;
+		addOp = OP_ADD_SET_UPVALUE;
+		subOp = OP_SUB_SET_UPVALUE;
 	} else {
 		arg = identifier_constant(&name);
 		getOp = OP_GET_GLOBAL;
 		setOp = OP_SET_GLOBAL;
+		addOp = OP_ADD_SET_GLOBAL;
+		subOp = OP_SUB_SET_GLOBAL;
 	}
 
-	if ( can_assign && match(TOKEN_EQUAL) ) {
-		expression();
-		emit_bytes(setOp, (uint8_t)arg);
-	} else {
-		emit_bytes(getOp, (uint8_t)arg);
+	if ( can_assign ) {
+		if ( match(TOKEN_EQUAL) ) {
+			expression();
+			emit_bytes(setOp, (uint8_t)arg);
+			return;
+		} else if ( match(TOKEN_PLUS_EQUAL) ) {
+			expression();
+			emit_bytes(addOp, (uint8_t)arg);
+			return;
+		} else if ( match(TOKEN_MINUS_EQUAL) ) {
+			expression();
+			emit_bytes(subOp, (uint8_t)arg);
+			return;
+		}
 	}
+
+	emit_bytes(getOp, (uint8_t)arg);
 }
 
 static void variable(bool can_assign) {
@@ -465,7 +482,9 @@ ParseRule rules[] = {
 	[TOKEN_RIGHT_BRACE]   = {NULL,     NULL,   PREC_NONE},
 	[TOKEN_COMMA]         = {NULL,     NULL,   PREC_NONE},
 	[TOKEN_DOT]           = {NULL,     NULL,   PREC_NONE},
+	[TOKEN_MINUS_EQUAL]   = {NULL,     NULL,   PREC_NONE},
 	[TOKEN_MINUS]         = {unary,    binary, PREC_TERM},
+	[TOKEN_PLUS_EQUAL]    = {NULL,     NULL,   PREC_NONE},
 	[TOKEN_PLUS]          = {NULL,     binary, PREC_TERM},
 	[TOKEN_SEMICOLON]     = {NULL,     NULL,   PREC_NONE},
 	[TOKEN_SLASH]         = {NULL,     binary, PREC_FACTOR},
@@ -488,7 +507,7 @@ ParseRule rules[] = {
 	[TOKEN_FUNCTION]      = {NULL,     NULL,   PREC_NONE},
 	[TOKEN_IF]            = {NULL,     NULL,   PREC_NONE},
 	[TOKEN_NULL]          = {literal,  NULL,   PREC_NONE},
-	[TOKEN_OR]            = {NULL,     or_,   PREC_NONE},
+	[TOKEN_OR]            = {NULL,     or_,    PREC_NONE},
 	[TOKEN_TYPE]          = {NULL,     NULL,   PREC_NONE},
 	[TOKEN_RETURN]        = {NULL,     NULL,   PREC_NONE},
 	[TOKEN_TRUE]          = {literal,  NULL,   PREC_NONE},
