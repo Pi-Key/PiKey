@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <math.h>
@@ -59,6 +60,72 @@ static Value upper_native(int arg_count, Value* args) {
 	return OBJ_VAL(copy_string(string, strlen(string)));
 }
 
+static double rand_num_gen(double min, double max) {
+	return min + (rand() / (double)(RAND_MAX) * (max - min));
+}
+
+static Value rand_native(int arg_count, Value* args) {
+	double min, max;
+	if ( arg_count != 2 ) {
+		min = 0;
+		max = 1;
+	} else {
+		if ( !IS_NUMBER(args[0]) || !IS_NUMBER(args[1]) ) {
+			runtime_error("The minimum and maximum for rand_num must be numbers.");
+			return INTERPRET_RUNTIME_ERROR;
+		}
+
+		min = AS_NUMBER(args[0]);
+		max = AS_NUMBER(args[1]);
+	}
+
+	double rand_num = rand_num_gen(min, max);
+	return NUMBER_VAL(rand_num);
+}
+
+static Value rand_int_native(int arg_count, Value* args) {
+	int min, max;
+	if ( arg_count != 2 ) {
+		min = 0;
+		max = 1;
+	} else {
+		if ( !IS_NUMBER(args[0]) || !IS_NUMBER(args[1]) ) {
+			runtime_error("The minimum and maximum for rand_num must be numbers.");
+			return INTERPRET_RUNTIME_ERROR;
+		}
+
+		min = (int)AS_NUMBER(args[0]);
+		max = (int)AS_NUMBER(args[1]);
+	}
+
+	int rand_num = (int)rand_num_gen(min, max + 1);
+	return NUMBER_VAL(rand_num);
+}
+
+static Value rand_digit_native(int arg_count, Value* args) {
+	int rand_num = (int)(rand_num_gen(0, 9) + 1);
+	char digit = '0' + rand_num;
+	return OBJ_VAL(copy_string(&digit, 1));
+}
+
+static Value rand_let_native(int arg_count, Value* args) {
+	int rand_num = (int)(rand_num_gen(0, 25) + 1);
+	char* alph = "abcdefghijklmnopqrstuvwxyz";
+	return OBJ_VAL(copy_string(&alph[rand_num], 1));
+}
+
+static Value rand_spcc_native(int arg_count, Value* args) {
+	int rand_num = (int)(rand_num_gen(0, 9) + 1);
+	char* spcc = "!@#$%^&*()";
+	return OBJ_VAL(copy_string(&spcc[rand_num], 1));
+}
+
+static Value rand_char_native(int arg_count, Value* args) {
+	int rand_num = (int)(rand_num_gen(0, 45) + 1);
+	char* chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+	return OBJ_VAL(copy_string(&chars[rand_num], 1));
+}
+
 static void reset_stack() {
 	vm.stack_top = vm.stack;
 	vm.frame_count = 0;
@@ -99,6 +166,8 @@ static void define_native(const char* name, NativeFn function) {
 }
 
 void init_vm() {
+	srand(time(NULL));
+
 	reset_stack();
 	vm.objects = NULL;
 	vm.bytes_allocated = 0;
@@ -111,9 +180,15 @@ void init_vm() {
 	init_table(&vm.globals);
 	init_table(&vm.strings);
 
-	define_native("clock", clock_native);
-	define_native("lower", lower_native);
-	define_native("upper", upper_native);
+	define_native("clock",      clock_native);
+	define_native("lower",      lower_native);
+	define_native("upper",      upper_native);
+	define_native("rand",       rand_native);
+	define_native("rand_int",   rand_int_native);
+	define_native("rand_digit", rand_digit_native);
+	define_native("rand_let",   rand_let_native);
+	define_native("rand_spcc",  rand_spcc_native);
+	define_native("rand_char",  rand_char_native);
 }
 
 void push(Value value) {
