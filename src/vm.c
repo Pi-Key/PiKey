@@ -126,6 +126,51 @@ static Value rand_char_native(int arg_count, Value* args) {
 	return OBJ_VAL(copy_string(&chars[rand_num], 1));
 }
 
+static Value slice_native(int arg_count, Value* args) {
+	int length;
+	if ( arg_count == 2 ) {
+		length = 1;
+	} else if ( arg_count == 3 ) {
+		if ( !IS_NUMBER(args[2]) ) {
+			runtime_error("The slice function takes the following arguments: str(string), start(int), length(int - optional).");
+			return INTERPRET_RUNTIME_ERROR;
+		}
+		length = AS_NUMBER(args[2]);
+	} else {
+		runtime_error("The slice function takes the following arguments: str(string), start(int), length(int - optional).");
+		return INTERPRET_RUNTIME_ERROR;
+	}
+
+	if ( !IS_NUMBER(args[1]) ) {
+		runtime_error("The slice function takes the following arguments: str(string), start(int), length(int - optional).");
+		return INTERPRET_RUNTIME_ERROR;
+	}
+	size_t start = AS_NUMBER(args[1]);
+
+	if ( !IS_STRING(args[0]) ) {
+		runtime_error("The slice function takes the following arguments: str(string), start(int), length(int - optional).");
+		return INTERPRET_RUNTIME_ERROR;
+	}
+	char* string = AS_CSTRING(args[0]);
+
+	if ( length > UINT64_MAX - 1 ) {
+		runtime_error("The slice function cannot create a slice longer than the maximum of uint64 (18446744073709551615).");
+	}
+
+	char* string_slice = malloc(sizeof(char) * (length + 1));
+	strncpy(string_slice, string + start, length);
+	return OBJ_VAL(copy_string(string_slice, length));
+}
+
+static Value length_native(int arg_count, Value* args) {
+	if ( arg_count != 1 || !IS_STRING(args[0]) ) {
+		runtime_error("The length function takes the following argument: str(string).");
+		return INTERPRET_RUNTIME_ERROR;
+	}
+
+	return NUMBER_VAL(strlen(AS_CSTRING(args[0])));
+}
+
 static void reset_stack() {
 	vm.stack_top = vm.stack;
 	vm.frame_count = 0;
@@ -189,6 +234,8 @@ void init_vm() {
 	define_native("rand_let",   rand_let_native);
 	define_native("rand_spcc",  rand_spcc_native);
 	define_native("rand_char",  rand_char_native);
+	define_native("slice",      slice_native);
+	define_native("length",     length_native);
 }
 
 void push(Value value) {
