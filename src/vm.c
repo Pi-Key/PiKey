@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+#include <ctype.h>
 
 #include "chunk.h"
 #include "compiler.h"
@@ -14,8 +15,48 @@
 
 VM vm;
 
+static void runtime_error(const char* format, ...);
+
 static Value clock_native(int arg_count, Value* args) {
 	return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
+}
+
+static Value lower_native(int arg_count, Value* args) {
+	if ( arg_count != 1 ) {
+		runtime_error("The lower function takes exactly one argument.");
+		return INTERPRET_RUNTIME_ERROR;
+	}
+
+	if ( !IS_STRING(args[0]) ) {
+		runtime_error("The lower function takes a string as an argument.");
+		return INTERPRET_RUNTIME_ERROR;
+	}
+
+	char* string = AS_CSTRING(args[0]);
+
+	for ( int i=0; string[i]; i++) {
+		string[i] = tolower(string[i]);
+	}
+	return OBJ_VAL(copy_string(string, strlen(string)));
+}
+
+static Value upper_native(int arg_count, Value* args) {
+	if ( arg_count != 1 ) {
+		runtime_error("The upper function takes exactly one argument.");
+		return INTERPRET_RUNTIME_ERROR;
+	}
+
+	if ( !IS_STRING(args[0]) ) {
+		runtime_error("The upper function takes a string as an argument.");
+		return INTERPRET_RUNTIME_ERROR;
+	}
+
+	char* string = AS_CSTRING(args[0]);
+
+	for ( int i=0; string[i]; i++) {
+		string[i] = toupper(string[i]);
+	}
+	return OBJ_VAL(copy_string(string, strlen(string)));
 }
 
 static void reset_stack() {
@@ -71,6 +112,8 @@ void init_vm() {
 	init_table(&vm.strings);
 
 	define_native("clock", clock_native);
+	define_native("lower", lower_native);
+	define_native("upper", upper_native);
 }
 
 void push(Value value) {
