@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 #include "chunk.h"
 #include "compiler.h"
@@ -207,6 +208,56 @@ static InterpretResult run() {
       push(valueType(a op b)); \
     } while (false)
 
+#define BITWISE_OP(op) \
+	do { \
+		if ( IS_BOOL(peek(0)) && IS_BOOL(peek(1)) ) { \
+			bool b = AS_BOOL(pop()); \
+			bool a = AS_BOOL(pop()); \
+			push(BOOL_VAL(a op b)); \
+		} else if ( IS_NUMBER(peek(0)) && IS_NUMBER(peek(1)) ) { \
+			double b = AS_NUMBER(pop()); \
+			double a = AS_NUMBER(pop()); \
+			int bi = (int)b; \
+			int ai = (int)a; \
+			if ( a != ai || b != bi ) { \
+				runtime_error("Operands of bitwise operator must be integers not floats."); \
+				return INTERPRET_RUNTIME_ERROR; \
+			} \
+			push(NUMBER_VAL(ai op bi)); \
+		} else { \
+			runtime_error("Operands of a bitwise operator must be an integer or a boolean."); \
+			return INTERPRET_RUNTIME_ERROR; \
+		} \
+	} while (false)
+
+#define POW_OP() \
+	do { \
+		if ( !IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1)) ) { \
+			runtime_error("Operands must be numbers."); \
+			return INTERPRET_RUNTIME_ERROR; \
+		} \
+		double b = AS_NUMBER(pop()); \
+		double a = AS_NUMBER(pop()); \
+		push(NUMBER_VAL(pow(a, b))); \
+	} while (false)
+
+#define MODULO_OP() \
+	do { \
+		if ( !IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1)) ) { \
+			runtime_error("Operands must be numbers."); \
+			return INTERPRET_RUNTIME_ERROR; \
+		} \
+		double b = AS_NUMBER(pop()); \
+		double a = AS_NUMBER(pop()); \
+		int ai = (int)a; \
+		int bi = (int)b; \
+		if ( a != ai || b != bi ) { \
+			runtime_error("Operands of modulo must be integers."); \
+			return INTERPRET_RUNTIME_ERROR; \
+		} \
+		push(NUMBER_VAL((double)(ai % bi))); \
+	} while (false)
+
 	for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
 		printf("          ");
@@ -405,6 +456,13 @@ static InterpretResult run() {
 			case OP_SUBTRACT: BINARY_OP(NUMBER_VAL, -); break;
 			case OP_MULTIPLY: BINARY_OP(NUMBER_VAL, *); break;
 			case OP_DIVIDE:   BINARY_OP(NUMBER_VAL, /); break;
+			case OP_MODULO:   MODULO_OP(); break;
+			case OP_POW:      POW_OP(); break;
+			case OP_ANDB:     BITWISE_OP(&); break;
+			case OP_ORB:      BITWISE_OP(|); break;
+			case OP_XORB:     BITWISE_OP(^); break;
+			case OP_SHIFTR:   BITWISE_OP(>>); break;
+			case OP_SHIFTL:   BITWISE_OP(<<); break;
 			case OP_NOT:
 				push(BOOL_VAL(is_falsey(pop())));
 				break;
