@@ -171,6 +171,19 @@ static Value length_native(int arg_count, Value* args) {
 	return NUMBER_VAL(strlen(AS_CSTRING(args[0])));
 }
 
+static void wait_millis(Value time_val) {
+	if ( !IS_NUMBER(time_val) ) {
+		runtime_error("Wait requires a number representing the wait time in milliseconds.");
+		exit(1);
+	}
+
+	double target_time = AS_NUMBER(time_val) / 1000.0;
+	
+	time_t start, end;
+	time(&start);
+	do time(&end); while(difftime(end, start) <= target_time);
+}
+
 static void reset_stack() {
 	vm.stack_top = vm.stack;
 	vm.frame_count = 0;
@@ -642,6 +655,10 @@ static InterpretResult run() {
 			case OP_TYPE: {
 				print_value(pop());
 				printf("\n");
+				break;
+			}
+			case OP_WAIT: {
+				wait_millis(pop());
 				break;
 			}
 			case OP_JUMP: {

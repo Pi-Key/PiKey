@@ -517,6 +517,7 @@ ParseRule rules[] = {
 	[TOKEN_NULL]            = {literal,  NULL,   PREC_NONE},
 	[TOKEN_OR]              = {NULL,     or_,    PREC_NONE},
 	[TOKEN_TYPE]            = {NULL,     NULL,   PREC_NONE},
+	[TOKEN_WAIT]            = {NULL,     NULL,   PREC_NONE},
 	[TOKEN_RETURN]          = {NULL,     NULL,   PREC_NONE},
 	[TOKEN_TRUE]            = {literal,  NULL,   PREC_NONE},
 	[TOKEN_VAR]             = {NULL,     NULL,   PREC_NONE},
@@ -741,6 +742,12 @@ static void print_statement() {
 	emit_byte(OP_TYPE);
 }
 
+static void wait_statement() {
+	expression();
+	consume(TOKEN_SEMICOLON, "Expect ';' after value");
+	emit_byte(OP_WAIT);
+}
+
 static void return_statement() {
 	if ( current->type == TYPE_SCRIPT ) {
 		error("Can only return inside a function.");
@@ -783,6 +790,7 @@ static void synchronize() {
 			case TOKEN_IF:
 			case TOKEN_WHILE:
 			case TOKEN_TYPE:
+			case TOKEN_WAIT:
 			case TOKEN_RETURN:
 				return;
 
@@ -796,6 +804,8 @@ static void synchronize() {
 static void statement() {
 	if ( match(TOKEN_TYPE) ) {
 		print_statement();
+	} else if ( match(TOKEN_WAIT) ) {
+		wait_statement();
 	} else if ( match(TOKEN_FOR) ) {
 		for_statement();
 	} else if ( match(TOKEN_IF) ) {

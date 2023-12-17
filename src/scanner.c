@@ -137,11 +137,18 @@ static TokenType identifier_type() {
 			if ( scanner.current - scanner.start > 1 ) {
 				switch ( scanner.start[1] ) {
 					case 'r': return check_keyword(2, 2, "ue", TOKEN_TRUE);
-					case 'y': return  check_keyword(2, 2, "pe", TOKEN_TYPE);
+					case 'y': return check_keyword(2, 2, "pe", TOKEN_TYPE);
 				}
 			}
 			break;
-		case 'w': return check_keyword(1, 4, "hile", TOKEN_WHILE);
+		case 'w': 
+			if ( scanner.current - scanner.start > 1 ) {
+				switch ( scanner.start[1] ) {
+					case 'a': return check_keyword(2, 2, "it", TOKEN_WAIT);
+					case 'h': return check_keyword(2, 3, "ile", TOKEN_WHILE);
+				}
+			}
+			break;
 	}
 
 	return TOKEN_IDENTIFIER;
