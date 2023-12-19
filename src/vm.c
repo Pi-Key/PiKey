@@ -358,6 +358,17 @@ static void concatenate() {
 	push(OBJ_VAL(result));
 }
 
+static ObjString* concatenate_with(ObjString* a, ObjString* b) {
+	int length = a->length + b->length;
+	char* chars = ALLOCATE(char, length + 1);
+	memcpy(chars, a->chars, a->length);
+	memcpy(chars + a->length, b->chars, b->length);
+	chars[length] = '\0';
+
+	ObjString* result = take_string(chars, length);
+	return result;
+}
+
 void free_vm() {
 	free_table(&vm.globals);
 	free_table(&vm.strings);
@@ -505,12 +516,15 @@ static InterpretResult run() {
 				Value initial = frame->slots[slot];
 				Value add = peek(0);
 
-				if ( !IS_NUMBER(initial) || !IS_NUMBER(add) ) {
-					runtime_error("Trying to add with '+=' to a variable which is not a number.");
+				if ( IS_STRING(initial) && IS_STRING(add) ) {
+					frame->slots[slot] = OBJ_VAL(concatenate_with(AS_STRING(initial), AS_STRING(add)));
+				} else if ( IS_NUMBER(initial) && IS_NUMBER(add) ) {
+					frame->slots[slot] = num_to_value(value_to_num(initial) + value_to_num(add));
+				} else {
+					runtime_error("Trying to add with '+=' to a variable which is either not a string or number or does not match the variable's type.");
 					return INTERPRET_RUNTIME_ERROR;
 				}
 
-				frame->slots[slot] = num_to_value(value_to_num(initial) + value_to_num(add));
 				break;
 			}
 			case OP_SET_GLOBAL: {
@@ -559,10 +573,17 @@ static InterpretResult run() {
 					return INTERPRET_RUNTIME_ERROR;
 				}
 
-				Value new_val = num_to_value(value_to_num(initial) + value_to_num(add));
+				Value new_val;
 
-				if ( !IS_NUMBER(initial) || !IS_NUMBER(add) ) {
-					runtime_error("Trying to add with '+=' to a variable which is not a number.");
+				if ( IS_STRING(initial) && IS_STRING(add) ) {
+					new_val = OBJ_VAL(concatenate_with(AS_STRING(initial), AS_STRING(add)));
+
+				} else if ( IS_NUMBER(initial) && IS_NUMBER(add) ) {
+					Value add = add;
+
+					new_val = num_to_value(value_to_num(initial) + value_to_num(add));
+				} else {
+					runtime_error("Trying to add with '+=' to a variable which is either not a string or number or does not match the variable's type.");
 					return INTERPRET_RUNTIME_ERROR;
 				}
 
@@ -590,7 +611,7 @@ static InterpretResult run() {
 				Value sub = peek(0);
 
 				if ( !IS_NUMBER(initial) || !IS_NUMBER(sub) ) {
-					runtime_error("Trying to subtract with '-=' to a variable which is not a number.");
+					runtime_error("Trying to add with '+=' to a variable which is either not a string or number or does not match the variable's type.");
 					return INTERPRET_RUNTIME_ERROR;
 				}
 
@@ -602,12 +623,15 @@ static InterpretResult run() {
 				Value initial = *frame->closure->upvalues[slot]->location;
 				Value add = peek(0);
 
-				if ( !IS_NUMBER(initial) || !IS_NUMBER(add) ) {
-					runtime_error("Trying to add with '+=' to a variable which is not a number.");
+				if ( IS_STRING(initial) && IS_STRING(add) ) {
+					*frame->closure->upvalues[slot]->location = OBJ_VAL(concatenate_with(AS_STRING(initial), AS_STRING(add)));
+				} else if ( IS_NUMBER(initial) && IS_NUMBER(add) ) {
+					*frame->closure->upvalues[slot]->location = num_to_value(value_to_num(initial) + value_to_num(add));
+				} else {
+					runtime_error("Trying to add with '+=' to a variable which is either not a string or number or does not match the variable's type.");
 					return INTERPRET_RUNTIME_ERROR;
 				}
 
-				*frame->closure->upvalues[slot]->location = num_to_value(value_to_num(initial) + value_to_num(add));
 				break;
 			}
 			case OP_EQUAL: {
