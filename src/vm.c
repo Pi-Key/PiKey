@@ -171,10 +171,44 @@ static Value length_native(int arg_count, Value* args) {
 	return NUMBER_VAL(strlen(AS_CSTRING(args[0])));
 }
 
-static void wait_millis(Value time_val) {
+static Value append_native(int arg_count, Value* args) {
+	if ( arg_count != 2 || !IS_LIST(args[0]) ) {
+		runtime_error("The append function takes the following arguments: list(list), value(int).");
+		return INTERPRET_RUNTIME_ERROR;
+	}
+
+	ObjList* list = AS_LIST(args[0]);
+	Value value = args[1];
+
+	append_to_list(list, value);
+
+	return NULL_VAL;
+}
+
+static Value delete_native(int arg_count, Value* args) {
+	if ( arg_count != 2 || !IS_LIST(args[0]) || !IS_NUMBER(args[1]) ) {
+		runtime_error("The delete function takes the following arguments: list(list), index(int).");
+		return INTERPRET_RUNTIME_ERROR;
+	}
+
+	ObjList* list = AS_LIST(args[0]);
+	int index = AS_NUMBER(args[1]);
+
+	if ( index < 0 && abs(index) <= list->count - 1 ) {
+	} else if ( 0 > index || index > list->count - 1 ) {
+		runtime_error("Index out of range of list.");
+		return INTERPRET_RUNTIME_ERROR;
+	}
+
+	delete_from_list(list, index);
+
+	return NULL_VAL;
+}
+
+static Value wait_millis(Value time_val) {
 	if ( !IS_NUMBER(time_val) ) {
 		runtime_error("Wait requires a number representing the wait time in milliseconds.");
-		exit(1);
+		return INTERPRET_RUNTIME_ERROR;
 	}
 
 	double target_time = AS_NUMBER(time_val) / 1000.0;
@@ -182,6 +216,8 @@ static void wait_millis(Value time_val) {
 	time_t start, end;
 	time(&start);
 	do time(&end); while(difftime(end, start) <= target_time);
+	
+	return NULL_VAL;
 }
 
 static void reset_stack() {
@@ -249,6 +285,8 @@ void init_vm() {
 	define_native("rand_char",  rand_char_native);
 	define_native("slice",      slice_native);
 	define_native("length",     length_native);
+	define_native("append",     append_native);
+	define_native("delete",     delete_native);
 }
 
 void push(Value value) {
@@ -730,6 +768,70 @@ static InterpretResult run() {
 				close_upvalues(vm.stack_top - 1);
 				pop();
 				break;
+			case OP_CREATE_LIST: {
+				ObjList* list = new_list();
+				uint8_t list_count = READ_BYTE();
+
+				push(OBJ_VAL(list));
+				for ( int i=list_count; i > 0; i-- ) {
+					append_to_list(list, peek(i));
+				}
+
+				while ( list_count-- != 0 ) {
+					pop();
+				}
+
+				push(OBJ_VAL(list));
+				break;
+			}
+			case OP_SUBSCRIPT: {
+				Value index = pop();
+				Value list = pop();
+
+				if ( !IS_LIST(OBJ_VAL(list)) ) {
+					runtime_error("Subscripting is only available for lists.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				if ( !IS_NUMBER(index) ) {
+					runtime_error("The index of a list must be an integer.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				if ( AS_NUMBER(index) < 0 && abs((int)AS_NUMBER(index)) <= AS_LIST(list)->count - 1 ) {
+				} else if ( AS_LIST(list)->count - 1 < AS_NUMBER(index) || AS_NUMBER(index) < 0 ) {
+					runtime_error("List index out of range.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				push(value_from_list(AS_LIST(list), (int)AS_NUMBER(index)));
+				break;
+			}
+			case OP_SET_SUBSCRIPT: {
+				Value value = pop();
+				Value index = pop();
+				Value list = pop();
+
+				if ( !IS_LIST(OBJ_VAL(list)) ) {
+					runtime_error("Subscripting is only available for lists.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				if ( !IS_NUMBER(index) ) {
+					runtime_error("The index of a list must be an integer");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				if ( AS_NUMBER(index) < 0 && abs((int)AS_NUMBER(index)) <= AS_LIST(list)->count - 1 ) {
+				} else if ( AS_LIST(list)->count - 1 < AS_NUMBER(index) || AS_NUMBER(index) < 0 ) {
+					runtime_error("List index out of range.");
+					return INTERPRET_RUNTIME_ERROR;
+				}
+
+				set_in_list(AS_LIST(list), (int)AS_NUMBER(index), value);
+				push(value);
+				break;
+			}
 			case OP_RETURN: {
 				Value result = pop();
 				close_upvalues(frame->slots);

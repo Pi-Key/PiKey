@@ -48,6 +48,9 @@ typedef enum {
 	OP_CLOSE_UPVALUE,
 	OP_RETURN,
 	OP_WAIT,
+	OP_CREATE_LIST,
+	OP_SUBSCRIPT,
+	OP_SET_SUBSCRIPT,
 } OpCode;
 
 typedef struct {

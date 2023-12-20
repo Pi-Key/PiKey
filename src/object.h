@@ -11,19 +11,22 @@
 #define IS_FUNCTION(value) is_obj_type(value, OBJ_FUNCTION)
 #define IS_NATIVE(value)   is_obj_type(value, OBJ_NATIVE)
 #define IS_STRING(value)   is_obj_type(value, OBJ_STRING)
+#define IS_LIST(value)     is_obj_type(value, OBJ_LIST)
 
 #define AS_CLOSURE(value)  ((ObjClosure*)AS_OBJ(value))
 #define AS_FUNCTION(value) ((ObjFunction*)AS_OBJ(value))
 #define AS_NATIVE(value)   (((ObjNative*)AS_OBJ(value))->function)
 #define AS_STRING(value)   ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)  (((ObjString*)AS_OBJ(value))->chars)
+#define AS_LIST(value)     ((ObjList*)AS_OBJ(value))
 
 typedef enum {
 	OBJ_CLOSURE,
 	OBJ_FUNCTION,
 	OBJ_NATIVE,
 	OBJ_STRING,
-	OBJ_UPVALUE
+	OBJ_UPVALUE,
+	OBJ_LIST
 } ObjType;
 
 struct Obj {
@@ -54,6 +57,13 @@ struct ObjString {
 	uint32_t hash;
 };
 
+typedef struct {
+	Obj obj;
+	int count;
+	int capacity;
+	Value* items;
+} ObjList;
+
 typedef struct ObjUpvalue {
 	Obj obj;
 	Value* location;
@@ -73,6 +83,12 @@ ObjClosure* new_closure(ObjFunction* function);
 ObjFunction* new_function();
 
 ObjNative* new_native(NativeFn);
+
+ObjList* new_list();
+void append_to_list(ObjList* list, Value value);
+void set_in_list(ObjList* list, int index, Value value);
+Value value_from_list(ObjList* list, int index);
+void delete_from_list(ObjList* list, int index);
 
 ObjString* take_string(char* chars, int length);
 

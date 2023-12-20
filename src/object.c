@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "memory.h"
@@ -53,6 +54,55 @@ ObjNative* new_native(NativeFn function) {
 	ObjNative* native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);
 	native->function = function;
 	return native;
+}
+
+ObjList* new_list() {
+	ObjList* list = ALLOCATE_OBJ(ObjList, OBJ_LIST);
+	list->items = NULL;
+	list->count = 0;
+	list->capacity = 0;
+	return list;
+}
+
+void append_to_list(ObjList* list, Value value) {
+	if ( list->capacity < list->count + 1 ) {
+		int old_capacity = list->capacity;
+		list->capacity = GROW_CAPACITY(old_capacity);
+		list->items = GROW_ARRAY(Value, list->items, old_capacity, list->capacity);
+	}
+	
+	list->items[list->count] = value;
+	list->count++;
+
+	return;
+}
+
+void set_in_list(ObjList* list, int index, Value value) {
+	if ( index < 0 && abs(index) <= list->count - 1 ) {
+		list->items[list->count - 1 - index] = value;
+	} else {
+		list->items[index] = value;
+	}
+}
+
+Value value_from_list(ObjList* list, int index) {
+	if ( index < 0 && abs(index) <= list->count - 1 ) {
+		return list->items[list->count - 1 - index];
+	}
+	return list->items[index];
+}
+
+void delete_from_list(ObjList* list, int index) {
+	if ( index < 0 && abs(index) <= list->count - 1 ) {
+		index = list->count - 1 - index;
+	}
+
+	for ( int i=index; i < list->count - 1; i++ ) {
+		list->items[i] = list->items[i+1];
+	}
+
+	list->items[list->count - 1] = NULL_VAL;
+	list->count --;
 }
 
 static ObjString* allocate_string(char* chars, int length, uint32_t hash) {
@@ -118,6 +168,15 @@ static void print_function(ObjFunction* function) {
 	printf("<fn %s>", function->name->chars);
 }
 
+static void print_list(ObjList* list) {
+	printf("[%d", (int)AS_NUMBER(list->items[0]));
+	for ( int i=1; i < list->count; i++) {
+		printf(", ");
+		printf("%d", (int)AS_NUMBER(list->items[i]));
+	}
+	printf("]");
+}
+
 void print_object(Value value) {
 	switch ( OBJ_TYPE(value) ) {
 		case OBJ_CLOSURE:
@@ -134,6 +193,9 @@ void print_object(Value value) {
 			break;
 		case OBJ_UPVALUE:
 			printf("upvalue");
+			break;
+		case OBJ_LIST:
+			print_list(AS_LIST(value));
 			break;
 	}
 }
