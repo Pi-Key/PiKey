@@ -425,7 +425,7 @@ static void list(bool can_assign) {
 
 static void subscript(bool can_assign) {
 	parse_precedence(PREC_OR);
-	consume(TOKEN_RIGHT_BRACKET, "Expect ']' after index of list.");
+	consume(TOKEN_RIGHT_BRACKET, "Expect ']' after index of list or string.");
 
 	if ( can_assign && match(TOKEN_EQUAL) ) {
 		expression();

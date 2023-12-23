@@ -145,7 +145,7 @@ static Value slice_native(int arg_count, Value* args) {
 		runtime_error("The slice function takes the following arguments: str(string), start(int), length(int - optional).");
 		return INTERPRET_RUNTIME_ERROR;
 	}
-	size_t start = AS_NUMBER(args[1]);
+	int start = AS_NUMBER(args[1]);
 
 	if ( !IS_STRING(args[0]) ) {
 		runtime_error("The slice function takes the following arguments: str(string), start(int), length(int - optional).");
@@ -153,12 +153,16 @@ static Value slice_native(int arg_count, Value* args) {
 	}
 	char* string = AS_CSTRING(args[0]);
 
-	if ( length > UINT64_MAX - 1 ) {
-		runtime_error("The slice function cannot create a slice longer than the maximum of uint64 (18446744073709551615).");
+	char* string_slice;
+	if ( start > 0 && start + length <= strlen(string) ) {
+		string_slice = malloc(sizeof(char) * (length + 1));
+		strncpy(string_slice, string + start, length);
+	} else if ( start < 0 && abs(start - length) <= strlen(string) ) {
+		int true_start = strlen(string) + start - length + 1;
+		string_slice = malloc(sizeof(char) * (length + 1));
+		strncpy(string_slice, string + true_start, length);
 	}
 
-	char* string_slice = malloc(sizeof(char) * (length + 1));
-	strncpy(string_slice, string + start, length);
 	return OBJ_VAL(copy_string(string_slice, length));
 }
 
@@ -786,50 +790,67 @@ static InterpretResult run() {
 			}
 			case OP_SUBSCRIPT: {
 				Value index = pop();
-				Value list = pop();
-
-				if ( !IS_LIST(OBJ_VAL(list)) ) {
-					runtime_error("Subscripting is only available for lists.");
-					return INTERPRET_RUNTIME_ERROR;
-				}
+				Value object = pop();
 
 				if ( !IS_NUMBER(index) ) {
 					runtime_error("The index of a list must be an integer.");
 					return INTERPRET_RUNTIME_ERROR;
 				}
 
-				if ( AS_NUMBER(index) < 0 && abs((int)AS_NUMBER(index)) <= AS_LIST(list)->count - 1 ) {
-				} else if ( AS_LIST(list)->count - 1 < AS_NUMBER(index) || AS_NUMBER(index) < 0 ) {
-					runtime_error("List index out of range.");
+				if ( IS_LIST(OBJ_VAL(object)) ) {
+					if ( AS_NUMBER(index) < 0 && abs((int)AS_NUMBER(index)) <= AS_LIST(object)->count - 1 ) {
+					} else if ( AS_LIST(object)->count - 1 < AS_NUMBER(index) || AS_NUMBER(index) < 0 ) {
+						runtime_error("List index out of range.");
+						return INTERPRET_RUNTIME_ERROR;
+					}
+
+					push(value_from_list(AS_LIST(object), (int)AS_NUMBER(index)));
+				} else if ( IS_STRING(OBJ_VAL(object)) ) {
+					Value args[2];
+					args[0] = object;
+					args[1] = index;
+
+					push(slice_native(2, args));
+				} else {
+					runtime_error("Subscripting is only available for lists and strings.");
 					return INTERPRET_RUNTIME_ERROR;
 				}
 
-				push(value_from_list(AS_LIST(list), (int)AS_NUMBER(index)));
 				break;
 			}
 			case OP_SET_SUBSCRIPT: {
 				Value value = pop();
 				Value index = pop();
-				Value list = pop();
-
-				if ( !IS_LIST(OBJ_VAL(list)) ) {
-					runtime_error("Subscripting is only available for lists.");
-					return INTERPRET_RUNTIME_ERROR;
-				}
+				Value object = pop();
 
 				if ( !IS_NUMBER(index) ) {
 					runtime_error("The index of a list must be an integer");
 					return INTERPRET_RUNTIME_ERROR;
 				}
 
-				if ( AS_NUMBER(index) < 0 && abs((int)AS_NUMBER(index)) <= AS_LIST(list)->count - 1 ) {
-				} else if ( AS_LIST(list)->count - 1 < AS_NUMBER(index) || AS_NUMBER(index) < 0 ) {
-					runtime_error("List index out of range.");
+				if ( IS_LIST(OBJ_VAL(object)) ) {
+					if ( AS_NUMBER(index) < 0 && abs((int)AS_NUMBER(index)) <= AS_LIST(object)->count - 1 ) {
+					} else if ( AS_LIST(object)->count - 1 < AS_NUMBER(index) || AS_NUMBER(index) < 0 ) {
+						runtime_error("List index out of range.");
+						return INTERPRET_RUNTIME_ERROR;
+					}
+
+					set_in_list(AS_LIST(object), (int)AS_NUMBER(index), value);
+					push(value);
+				} else if ( IS_STRING(OBJ_VAL(object)) ) {
+					if ( !IS_STRING(OBJ_VAL(value)) ) {
+						runtime_error("Only characters can be added into a string");
+						return INTERPRET_RUNTIME_ERROR;
+					}
+
+					char character = *AS_STRING(value)->chars;
+
+					set_in_string(AS_STRING(object), (int)AS_NUMBER(index), character);
+				} else {
+					runtime_error("Subscripting is only available for lists and strings.");
 					return INTERPRET_RUNTIME_ERROR;
 				}
 
-				set_in_list(AS_LIST(list), (int)AS_NUMBER(index), value);
-				push(value);
 				break;
 			}
 			case OP_RETURN: {

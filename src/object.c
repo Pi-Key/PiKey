@@ -105,6 +105,15 @@ void delete_from_list(ObjList* list, int index) {
 	list->count --;
 }
 
+void set_in_string(ObjString* string, int index, char character) {
+	if ( index >= 0 ) {
+		string->chars[index] = character;
+	} else {
+		int true_index = index + strlen(string->chars);
+		string->chars[true_index] = character;
+	}
+}
+
 static ObjString* allocate_string(char* chars, int length, uint32_t hash) {
 	ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
 	string->length = length;

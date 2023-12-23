@@ -90,8 +90,8 @@ void set_in_list(ObjList* list, int index, Value value);
 Value value_from_list(ObjList* list, int index);
 void delete_from_list(ObjList* list, int index);
 
+void set_in_string(ObjString* string, int index, char character);
 ObjString* take_string(char* chars, int length);
-
 ObjString* copy_string(const char* chars, int length);
 
 ObjUpvalue* new_upvalue(Value* slot);
