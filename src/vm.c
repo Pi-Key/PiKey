@@ -110,8 +110,8 @@ static Value rand_digit_native(int arg_count, Value* args) {
 
 static Value rand_let_native(int arg_count, Value* args) {
 	int rand_num = (int)(rand_num_gen(0, 25) + 1);
-	char* alph = "abcdefghijklmnopqrstuvwxyz";
-	return OBJ_VAL(copy_string(&alph[rand_num], 1));
+	char* alpha = "abcdefghijklmnopqrstuvwxyz";
+	return OBJ_VAL(copy_string(&alpha[rand_num], 1));
 }
 
 static Value rand_spcc_native(int arg_count, Value* args) {
@@ -498,7 +498,7 @@ static InterpretResult run() {
 			printf(" ]");
 		}
 		printf("\n");
-		dissasemble_instruction(&frame->closure->function->chunk, (int)(frame->ip - frame->closure->function->chunk.code));
+		disassemble_instruction(&frame->closure->function->chunk, (int)(frame->ip - frame->closure->function->chunk.code));
 #endif
 		uint8_t instruction;
 

@@ -3,8 +3,8 @@
 
 #include "chunk.h"
 
-void dissasemble_chunk(Chunk* chunk, const char* name);
+void disassemble_chunk(Chunk* chunk, const char* name);
 
-int dissasemble_instruction(Chunk* chunk, int offset);
+int disassemble_instruction(Chunk* chunk, int offset);
 
 #endif // !pikey_debug_h

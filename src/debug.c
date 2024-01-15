@@ -4,11 +4,11 @@
 #include "object.h"
 #include "value.h"
 
-void dissasemble_chunk(Chunk *chunk, const char *name) {
+void disassemble_chunk(Chunk *chunk, const char *name) {
 	printf("== %s ==\n", name);
 
 	for ( int offset = 0; offset < chunk->count; ) {
-		offset = dissasemble_instruction(chunk, offset);
+		offset = disassemble_instruction(chunk, offset);
 	}
 }
 
@@ -40,7 +40,7 @@ static int jump_instruction(const char* name, int sign, Chunk* chunk, int offset
 	return offset + 3;
 }
 
-int dissasemble_instruction(Chunk* chunk, int offset) {
+int disassemble_instruction(Chunk* chunk, int offset) {
 	printf("%04d", offset);
 
 	if ( offset > 0 && chunk->lines[offset] == chunk->lines[offset - 1] ) {
